@@ -8,13 +8,14 @@ class ClassifyNumAPIView(GenericAPIView):
     def get(self, request, *args, **kwargs):
         number = request.query_params.get('number')
 
-        if not number.isdigit() or not number:
-            return Response(status=400, data={'number': number, 'error': True})
+        try:
+            number = int(number)
+        except(TypeError, ValueError):
+            return Response(status=400, data={'number': 'alphabet', 'error': True})
 
-        number = int(number)
         properties = ['odd' if number % 2 !=0 else 'even']
 
-        if is_armstrong(number):
+        if is_armstrong(abs(number)):
             properties.insert(0, 'armstrong')
 
         response_data = {
@@ -22,7 +23,7 @@ class ClassifyNumAPIView(GenericAPIView):
             'is_prime': self.is_prime(number),
             'is_perfect': self.is_perfect(number),
             'properties': properties,
-            'digit_sum': sum(int(d) for d in str(number)),
+            'digit_sum': sum(int(d) for d in str(abs(number))),
             'fun_fact': get_fun_fact(number)
 
         }
@@ -38,4 +39,6 @@ class ClassifyNumAPIView(GenericAPIView):
         return True
 
     def is_perfect(self, num):
+        if num <= 0:
+            return False
         return num == sum(i for i in range(1, num) if num % i == 0)
